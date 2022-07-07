@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Maven Build') {
+            steps{
+                echo 'Maven Build and Cobertura Stage'
+                sh '/opt/apache-maven-3.6.3/bin/mvn clean -DskipTests=true package'
+            }
+	    }
+
+	     stage('Jacoco Report') {
+                    steps{
+                        echo 'Jacoco Stage'
+                        sh '/opt/apache-maven-3.6.3/bin/mvn test'
+                    }
+                }
+
+	    stage('Image Clear'){
+	        steps{
+	            echo 'Image Clear Stage'
+	            sh "if (docker ps -a| grep nemtr-be) then (docker container stop nemtr-be && docker container rm nemtr-be) fi"
+                sh "if (docker images | grep nemtr-be) then (docker rmi \$(docker images nemtr-be -q)) fi"
+	        }
+	    }
+
+        stage('Image Build'){
+            steps{
+                echo 'Image Build Stage'
+                sh "docker build . -t nemtr-be:${BUILD_ID}"
+            }
+        }
+
+        stage('Deploy'){
+            steps{
+                sh "docker run -p 8010:8010 --name nemtr-be -v /log:/log -d nemtr-be:${BUILD_ID}"
+            }
+        }
+    }
+    post {
+            success {
+                // publish html
+                publishHTML target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: '',
+                    reportFiles: 'index.html',
+                    reportName: 'Jacoco Report'
+                ]
+            }
+        }
+}

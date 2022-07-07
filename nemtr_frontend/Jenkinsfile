@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Image Clear'){
+	        steps{
+	            echo 'Image Clear Stage'
+	            sh "if (docker ps -a| grep nemtr-fe) then (docker container stop nemtr-fe && docker container rm nemtr-fe) fi"
+                sh "if (docker images | grep nemtr-fe) then (docker rmi \$(docker images nemtr-fe -q)) fi"
+	        }
+	    }
+        stage('Build'){
+	        steps{
+	            echo 'Build Stage'
+	            sh "cnpm install"
+              sh "cnpm run build"
+	        }
+	    }
+        stage('Image Build'){
+            steps{
+                echo 'Image Build Stage'
+                sh "docker build . -t nemtr-fe:${BUILD_ID}"
+            }
+        }
+        stage('Deploy'){
+            steps{
+                sh "docker run -p 9002:9002 --name nemtr-fe -v /log:/log -d nemtr-fe:${BUILD_ID}"
+            }
+        }
+    }
+}

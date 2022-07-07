@@ -1,0 +1,1 @@
+java -Duser.timezone=Asia/Shanghai -Djava.security.egd=file:/dev/./urandom -jar /backend-nemtr/backend-nemtr.jar > /log/nemtr.log 2> /log/error_nemtr.log

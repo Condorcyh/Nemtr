@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "spring.data.mongodb.collection-name",
+      "type": "java.lang.String",
+      "description": "Description for spring.data.mongodb.collection-name."
+  }
+] }
